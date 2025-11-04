@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#0b2a66" />
+<title>TIENS Cotizador PRO</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+
+<link rel="icon" href="icons/logo-192.png" sizes="192x192" />
+<link rel="icon" href="icons/logo-512.png" sizes="512x512" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+<style>
+  :root{--brand:#0b2a66;--muted:#5e6b85;--card:#ffffff;--ring:#e8ecf7;--success:#16a34a;
+        --gutter-l: max(12px, env(safe-area-inset-left));
+        --gutter-r: max(12px, env(safe-area-inset-right));}
+  *{box-sizing:border-box}
+  body{margin:0;background:#f4f7fc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial;overflow-x:hidden}
+  .app-container{max-width:1200px;margin:0 auto;padding:16px}
+  .app-header{background:linear-gradient(180deg,#0b2a66,#0c3280);color:#fff;border-radius:22px;padding:14px 16px;box-shadow:0 10px 30px rgba(11,42,102,.25);position:sticky;top:0;z-index:90}
+  .header-title{font-size:20px;font-weight:900}
+  .header-subtitle{opacity:.9}
+  .btn-action{background:#2ecc71;color:#fff;border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}
+  .search-section{margin:16px 0}
+  .search-wrap{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid var(--ring);border-radius:14px;padding:10px 12px}
+  .search-input{flex:1;border:0;outline:0;font-size:15px}
+  .content-section{background:#fff;border:2px solid var(--ring);border-radius:18px;padding:14px}
+  .section-title{font-size:20px;font-weight:900;color:#0b2a66;display:flex;align-items:center;gap:8px}
+  #toolbarSecciones{position:sticky;top:72px;z-index:88;background:#fff;padding:10px 12px;border-bottom:1px solid #eaeaea;display:flex;gap:8px;overflow-x:auto}
+  .chip-cat{border:2px solid #e0e0e0;background:#f8f9fa;padding:10px 14px;border-radius:999px;font-weight:800;cursor:pointer;white-space:nowrap}
+  .chip-cat.active{border-color:#0b2a66;background:#0b2a66;color:#fff}
+  details.seccion{background:#fff;border:2px solid #eee;border-radius:14px;margin:12px 8px;padding:6px 8px}
+  details.seccion>summary{list-style:none;font-weight:900;font-size:15px;color:#0b2a66;display:flex;align-items:center;gap:8px;cursor:pointer}
+  details.seccion[open]{border-color:#d7e3ff}
+  .grid-prod{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px}
+  .producto-item{border:1px solid #e6e8ef;background:#fff;border-radius:16px;box-shadow:0 4px 14px rgba(13,38,76,.06);padding:12px;transition:.2s;max-width:100%}
+  .producto-item:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(13,38,76,.12)}
+  .producto-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .producto-cod{font-weight:900;background:#eaf1ff;border-radius:10px;padding:4px 8px;color:#0b2a66}
+  .producto-puntos{font-weight:800;color:#5b6fb2}
+  .producto-nombre{font-size:14px;font-weight:800;color:#0b2a66;min-height:40px}
+  .producto-precio{font-size:18px;font-weight:900;color:var(--success)}
+  .precio-tachado{font-size:12px;color:#9aa2b1;text-decoration:line-through;margin-left:6px;display:block;line-height:1}
+  .qty-wrap{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .qty-btn{width:32px;height:32px;border-radius:10px;border:2px solid #e0e0e0;background:#f8f9fa;font-weight:900;cursor:pointer}
+  .qty-input{width:44px;padding:8px 6px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;text-align:center}
+  .btn-add{margin-top:8px;width:100%;background:#0b2a66;color:#fff;border:0;border-radius:12px;padding:10px;font-weight:800;cursor:pointer}
+  .empty-state{padding:30px;color:#94a3b8;text-align:center}
+  .carrito-fab{position:fixed;right:16px;bottom:18px;background:#0b2a66;color:#fff;border:0;border-radius:999px;display:none;align-items:center;gap:8px;padding:10px 14px;font-weight:900;box-shadow:0 14px 30px rgba(11,42,102,.35);z-index:120}
+  .badge{background:#fff;color:#0b2a66;font-weight:900;padding:2px 8px;border-radius:999px}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:150}
+  .modal-overlay.show{display:block}
+  .modal{position:fixed;right:var(--gutter-r);top:0;width:min(420px, calc(100vw - (var(--gutter-l) + var(--gutter-r))));max-width:95vw;height:100%;background:#fff;border-left:4px solid #0b2a66;box-shadow:-12px 0 40px rgba(0,0,0,.2);transform:translateX(100%);transition:.25s;z-index:160;display:flex;flex-direction:column;border-radius:16px 0 0 16px;box-sizing:border-box}
+  .modal.show{transform:translateX(0)}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #e8ecf7}
+  .modal-body{padding:10px 12px;flex:1;overflow:auto;overflow-x:hidden}
+  .modal-footer{padding:12px 14px;border-top:1px solid #e8ecf7;position:sticky;bottom:0;background:#fff}
+  .control-group{display:flex;justify-content:space-between;align-items:center;margin:6px 0}
+  .control-input{border:2px solid #e6e8ef;background:#f8fafc;border-radius:10px;padding:8px 10px;min-width:92px;height:38px;display:inline-flex;align-items:center;justify-content:center}
+  .btn{background:#0b2a66;color:#fff;border:0;border-radius:12px;padding:10px 14px;font-weight:900;cursor:pointer}
+  .item-header-cart{margin-top:6px;margin-bottom:4px;display:flex;gap:6px;flex-wrap:wrap}
+  .item-controls{display:grid;grid-template-columns:84px 1fr 1fr;gap:8px;align-items:center}
+  .control-input.qty{width:58px;height:38px}
+  .item-totales{padding:4px 0 10px;border-bottom:1px dashed #e5e9f4;margin-bottom:6px}
+  .subtotal{font-weight:900;color:#0b2a66}
+  .btn-eliminar{background:#0b2a66;color:#fff;border:0;border-radius:12px;padding:10px 14px;font-weight:900;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+  .btn-eliminar .trash{font-size:16px;line-height:1}
+  @media (max-width: 600px){
+    .modal{width:auto;max-width:none;right:var(--gutter-r);left:var(--gutter-l);border-left:0;border-radius:16px 16px 0 0;transform:translateY(100%);bottom:0;top:auto;height:85vh}
+    .modal.show{transform:translateY(0)}
+    .modal-header,.modal-body,.modal-footer{padding-left:var(--gutter-l);padding-right:var(--gutter-r)}
+    .item-controls{grid-template-columns:72px 1fr 1fr}
+    .control-input{min-width:auto}
+    .control-input.qty{width:52px}
+  }
+  /* ===== Premium Intro (every launch, 5s) ===== */
+  #splashIntro{position:fixed;inset:0;background:linear-gradient(180deg,#0b2a66,#0c3280);display:flex;align-items:center;justify-content:center;z-index:999;animation:fadeOut 0.6s ease 4.4s forwards}
+  .splash-card{display:flex;flex-direction:column;align-items:center;gap:10px;color:#fff;text-align:center; padding:12px 18px}
+  .splash-title{font-size:22px;font-weight:900;opacity:0;animation:fadeIn 1.2s ease 0.8s forwards}
+  .splash-credit{opacity:0;font-weight:700;color:#f2f2f2;animation:fadeIn 1s ease 3s forwards}
+  .splash-logo{opacity:0;border-radius:26px;box-shadow:0 8px 20px rgba(0,0,0,.25);animation:fadeIn 1s ease 0.2s forwards}
+  .gold-line{position:relative;width:220px;height:3px;border-radius:999px;background:linear-gradient(90deg,#8a6f2b,#d4af37,#ffcc4d,#d4af37,#8a6f2b);filter:brightness(1.1);overflow:hidden;margin-top:6px;opacity:0;animation:fadeIn 0.8s ease 1.6s forwards}
+  .gold-line::after{content:'';position:absolute;top:0;left:-80px;width:80px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),transparent);animation:shine 2.8s linear 1.8s infinite}
+  @keyframes shine{from{left:-80px} to{left:220px}}
+  @keyframes fadeIn{to{opacity:1}}
+  @keyframes fadeOut{to{opacity:0;visibility:hidden}}
+</style>
+</head>
+<body>
+  <!-- Intro / Splash -->
+  <div id="splashIntro">
+    <div class="splash-card">
+      <img class="splash-logo" src="icons/logo-512.png" width="120" height="120" alt="Logo" />
+      <div class="splash-title">Sueña en grande. Vive con propósito. Crece con TIENS.</div>
+      <div class="gold-line"></div>
+      <div class="splash-credit">Elaborado por Dream Academy · by Alexis Molina</div>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <div class="app-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div>
+          <div class="header-title">🛍️ TIENS COTIZADOR PRO</div>
+          <div class="header-subtitle">Dream Academy • Innovación, visión y expansión</div>
+        </div>
+        <button id="btnInstall" class="btn-action">⬇️ Instalar</button>
+      </div>
+    </div>
+
+    <div class="search-section">
+      <div class="search-wrap"><span class="search-icon">🔍</span>
+        <input id="searchInput" class="search-input" placeholder="Buscar productos por nombre o código..." />
+      </div>
+    </div>
+
+    <!-- Campos de Afiliado (vertical) -->
+    <div class="afiliado-section" style="margin:10px 0 6px">
+      <div style="background:#fff;border:2px solid var(--ring);border-radius:14px;padding:12px">
+        <label for="codigoAfiliado" style="display:block;font-weight:800;color:#0b2a66;margin-bottom:6px">Código:</label>
+        <input id="codigoAfiliado" type="text" placeholder="Ingresa tu código" 
+               style="width:100%;border:2px solid #e6e8ef;border-radius:12px;padding:10px 12px;font-size:15px;margin-bottom:10px;outline:none" />
+        <label for="nombreAfiliado" style="display:block;font-weight:800;color:#0b2a66;margin-bottom:6px">Nombre:</label>
+        <input id="nombreAfiliado" type="text" placeholder="Ingresa tu nombre"
+               style="width:100%;border:2px solid #e6e8ef;border-radius:12px;padding:10px 12px;font-size:15px;outline:none" />
+      </div>
+    </div>
+
+    <div class="content-section">
+      <div class="section-title">📦 Catálogo de Productos</div>
+      <div id="toolbarSecciones"></div>
+      <div id="productosLista" class="productos-list"></div>
+    </div>
+
+    <div class="app-footer" style="margin:20px auto 60px;max-width:980px;border:2px solid #eaeef7;border-radius:16px;padding:14px 18px;background:#f9fbff;display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <div class="brand" style="font-weight:900;color:#0b2a66">TIENS Cotizador PRO • Dream Academy</div>
+      <a class="btn-wa" style="display:inline-flex;align-items:center;gap:8px;background:#25d366;color:#fff;border:0;border-radius:12px;padding:8px 12px;font-weight:800;text-decoration:none" href="https://wa.me/51920904109" target="_blank" rel="noopener">WhatsApp: 920 904 109</a>
+    </div>
+  </div>
+
+  <!-- FAB carrito -->
+  <button id="carritoFab" class="carrito-fab" onclick="abrirCarrito()">
+    🛒 Carrito <span id="carritoBadge" class="badge">0</span>
+  </button>
+  <div id="modalOverlay" class="modal-overlay" onclick="cerrarCarrito()"></div>
+  <div id="modalCarrito" class="modal">
+    <div class="modal-header">
+      <div style="font-weight:900;color:#0b2a66">🧾 Tu pedido</div>
+      <button class="btn" onclick="cerrarCarrito()">Cerrar</button>
+    </div>
+    <div class="modal-body">
+      <div class="control-group">
+        <label>Tipo de compra</label>
+        <select id="tipoCompra" class="control-input" onchange="onControlsChange()">
+          <option value="CDA">CDA</option>
+          <option value="TDC">TDC (aplica percepción 2%)</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Descuento</label>
+        <select id="descuentoGlobal" class="control-input" onchange="onControlsChange()">
+          <option value="0">0%</option>
+          <option value="5">5%</option>
+          <option value="8">8%</option>
+          <option value="15">15%</option>
+        </select>
+        <small style="display:block;color:#6b7280;margin-top:4px">El descuento se aplica a precios y puntos por producto.</small>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+        <button id="toggleDetalle" class="btn" style="padding:8px 10px;border-radius:10px;font-weight:800">Ocultar detalle</button>
+      </div>
+      <div id="carritoItems"></div>
+    </div>
+    <div class="modal-footer">
+      <div class="control-group"><span>Descuento</span><span id="descuentoPrecio" class="control-input">S/ 0.00</span></div>
+      <div class="control-group" id="lineaPercepcion" style="display:none"><span>Percepción 2%</span><span id="montoPercepcion" class="control-input">S/ 0.00</span></div>
+      <div class="control-group"><span>Total</span><span id="totalPrecio" class="control-input">S/ 0.00</span></div>
+      <div class="control-group"><span>Puntos</span><span id="totalPuntos" class="control-input">0 pts</span></div>
+      <div style="display:flex;gap:10px;justify-content:space-between">
+        <button class="btn" onclick="compartirPedido()">Compartir</button>
+        <button class="btn" onclick="vaciarCarrito()">Vaciar</button>
+      </div>
+      <small id="notaPercepcion" style="display:none;color:#6b7280">La percepción se aplica solo en TDC.</small>
+    </div>
+  </div>
+
+<script>
+// ===== Catálogo =====
+const catalogo = [
+  { codigo:"A01", nombre:"Viokal", categoria:"suplementos", precio:73.50, puntos:16 },
+  { codigo:"A03", nombre:"Viokal Diet", categoria:"suplementos", precio:73.50, puntos:16 },
+  { codigo:"A05", nombre:"Té Tianshi", categoria:"suplementos", precio:73.50, puntos:16 },
+  { codigo:"A06", nombre:"Cordyceps 500 mg (Cápsula)", categoria:"suplementos", precio:156.00, puntos:34.5 },
+  { codigo:"A07", nombre:"Espirulina 250 mg (Cápsula)", categoria:"suplementos", precio:158.50, puntos:23.5 },
+  { codigo:"A08", nombre:"Jiaogulan Plus", categoria:"suplementos", precio:108.00, puntos:30.5 },
+  { codigo:"A09", nombre:"Tianshi Extracto de Uva 54.25 mg", categoria:"suplementos", precio:174.50, puntos:38 },
+  { codigo:"A10", nombre:"Selenio Plus 22 µg", categoria:"suplementos", precio:140.00, puntos:29 },
+  { codigo:"A11", nombre:"Tocolecic (Cápsula blanda)", categoria:"suplementos", precio:50.50, puntos:11 },
+  { codigo:"A13", nombre:"Zinc Protein (Cápsula)", categoria:"suplementos", precio:133.00, puntos:24 },
+  { codigo:"A50", nombre:"Viokal con Lecitina (Cápsula)", categoria:"suplementos", precio:46.00, puntos:10 },
+  { codigo:"A51", nombre:"Total Flex", categoria:"suplementos", precio:88.00, puntos:17 },
+  { codigo:"A74", nombre:"FOS Syrup (6 sachets x 10 ml)", categoria:"suplementos", precio:200.00, puntos:34 },
+  { codigo:"A75", nombre:"CordyCafé", categoria:"suplementos", precio:53.00, puntos:9 },
+  { codigo:"A86", nombre:"Fibra Tiens (70 tabletas)", categoria:"suplementos", precio:106.00, puntos:18 },
+  { codigo:"A89", nombre:"Bebida de Fibra Prebiótica (30 sachets x 12 g)", categoria:"suplementos", precio:165.00, puntos:24 },
+  { codigo:"A92", nombre:"Tiens Energy (15 sobres x 25 ml)", categoria:"suplementos", precio:123.00, puntos:20 },
+  { codigo:"A93", nombre:"Tiens Colágeno Forte + Ginseng (15 sachets)", categoria:"suplementos", precio:117.00, puntos:17 },
+  { codigo:"A94", nombre:"Tiens Fe Folic (120 tabletas)", categoria:"suplementos", precio:83.00, puntos:14 },
+  { codigo:"C62", nombre:"Gel Rejuvenecedor Cilvaris", categoria:"belleza", precio:69.00, puntos:15 },
+  { codigo:"C63", nombre:"Spakare Elemento Respiratorio (Línea Belleza)", categoria:"belleza", precio:70.00, puntos:10.2 },
+  { codigo:"C64", nombre:"Bloqueador Solar SPF50 Cilvaris", categoria:"belleza", precio:89.00, puntos:15 },
+  { codigo:"F17", nombre:"Set de Toallas Airiz (6 paquetes)", categoria:"cuidado_personal", precio:66.00, puntos:8 },
+  { codigo:"F17-1", nombre:"Toalla de Día Airiz (10 u.)", categoria:"cuidado_personal", precio:10.50, puntos:1.3 },
+  { codigo:"F17-2", nombre:"Toalla de Noche Airiz (8 u.)", categoria:"cuidado_personal", precio:12.50, puntos:1.5 },
+  { codigo:"F17-3", nombre:"Protector Diario Airiz (30 u.)", categoria:"cuidado_personal", precio:14.00, puntos:1.7 },
+  { codigo:"F18", nombre:"Pasta Dental Herbal Orecare 135 g", categoria:"cuidado_personal", precio:27.50, puntos:6 },
+  { codigo:"F24", nombre:"Pasta Blanqueadora 5 Orecare 100 g", categoria:"cuidado_personal", precio:30.00, puntos:6.5 },
+  { codigo:"B05", nombre:"Masajeador Circulación Sanguínea", categoria:"equipos_salud", precio:2416.00, puntos:468 },
+  { codigo:"B32", nombre:"Spakare Elemento Respiratorio (Equipo)", categoria:"equipos_salud", precio:953.00, puntos:150 },
+  { codigo:"B33", nombre:"Generador de Agua Desinfectante", categoria:"equipos_salud", precio:743.00, puntos:108 },
+  { codigo:"B36", nombre:"Masajeador Capilar Multifuncional", categoria:"equipos_salud", precio:578.00, puntos:98 },
+];
+const ORDER = ['suplementos','belleza','cuidado_personal','equipos_salud','otros'];
+const ICON  = { suplementos:'🧪', belleza:'💄', cuidado_personal:'🧴', equipos_salud:'🩺', otros:'📦' };
+const els = { search: document.getElementById('searchInput'), lista: document.getElementById('productosLista'), toolbar: document.getElementById('toolbarSecciones'), fab: document.getElementById('carritoFab'), badge: document.getElementById('carritoBadge') };
+
+function chipUI(){
+  els.toolbar.innerHTML = `
+    <button class="chip-cat active" data-cat="todos">📚 Todos</button>
+    <button class="chip-cat" data-cat="suplementos">🧪 Suplementos</button>
+    <button class="chip-cat" data-cat="belleza">💄 Belleza</button>
+    <button class="chip-cat" data-cat="cuidado_personal">🧴 Cuidado personal</button>
+    <button class="chip-cat" data-cat="equipos_salud">🩺 Equipos</button>
+  `;
+  function setActive(cat){ document.querySelectorAll('.chip-cat').forEach(b=>b.classList.toggle('active', b.dataset.cat===cat)); renderCatalogo(); }
+  document.querySelectorAll('.chip-cat').forEach(btn=> btn.addEventListener('click', ()=> setActive(btn.dataset.cat)));
+}
+chipUI();
+
+function groupBy(arr, key){ const m=new Map(); for(const it of arr){const k=(it[key]||'otros'); (m.get(k)||m.set(k,[]).get(k)).push(it);} return m; }
+function fmt(n,d=2){ return (Number(n)||0).toFixed(d); }
+
+// ==== Carrito y descuentos por producto ====
+const CART = { items:new Map() };
+function descuentoFactor(){ return (100 - Number(document.getElementById('descuentoGlobal')?.value||0))/100; }
+function isTDC(){ return (document.getElementById('tipoCompra')?.value||'CDA').toUpperCase() === 'TDC'; }
+
+function addToCart(p, qty){
+  const key = String(p.codigo).toUpperCase();
+  const prev = CART.items.get(key);
+  const nuevo = { codigo:p.codigo, nombre:p.nombre, precio:Number(p.precio)||0, puntos:Number(p.puntos)||0, qty:qty + (prev?.qty||0) };
+  CART.items.set(key, nuevo);
+  badgeUpdate(); toast(`Añadido: ${p.nombre} × ${qty}`);
+}
+function badgeUpdate(){
+  const t = Array.from(CART.items.values()).reduce((s,it)=>s+it.qty,0);
+  els.fab.style.display = t>0 ? 'flex' : 'none';
+  els.badge.textContent = t;
+}
+function toast(msg){
+  const t=document.createElement('div'); t.textContent=msg;
+  Object.assign(t.style,{position:'fixed',bottom:'90px',left:'50%',transform:'translateX(-50%)',background:'#0b2a66',color:'#fff',padding:'10px 14px',borderRadius:'10px',zIndex:3000,boxShadow:'0 8px 24px rgba(0,0,0,.2)',fontWeight:'800'});
+  document.body.appendChild(t); setTimeout(()=>t.remove(),1500);
+}
+
+function renderCatalogo(){
+  const q = (els.search?.value||'').toLowerCase().trim();
+  const selected = document.querySelector('.chip-cat.active')?.dataset.cat || 'todos';
+  const filtrados = catalogo.filter(p=>{
+    const okQ = !q || (String(p.codigo).toLowerCase().includes(q) || String(p.nombre).toLowerCase().includes(q));
+    const okC = selected==='todos' ? true : (p.categoria===selected);
+    return okQ && okC;
+  }).sort((a,b)=> String(a.nombre).localeCompare(String(b.nombre)));
+  const g = groupBy(filtrados,'categoria');
+  els.lista.innerHTML='';
+  let any=false;
+  const df = descuentoFactor();
+
+  for(const cat of ORDER){
+    const items = g.get(cat);
+    if(!items || !items.length) continue;
+    any=true;
+    const det=document.createElement('details'); det.className='seccion'; if(selected!=='todos') det.open=true;
+    det.innerHTML = `<summary>${ICON[cat]||'📦'} ${cat.replace('_',' ')} <span style="color:#999;font-weight:600;margin-left:6px">(${items.length})</span></summary>`;
+    const grid=document.createElement('div'); grid.className='grid-prod';
+    grid.innerHTML = items.map(p=>{
+      const priceWithDiscount = p.precio * df;
+      return `
+      <div class="producto-item" data-cod="${String(p.codigo).toUpperCase()}">
+        <div class="producto-header">
+          <span class="producto-cod">${p.codigo}</span>
+          <span class="producto-puntos">${fmt(p.puntos*df,1)} PV</span>
+        </div>
+        <div class="producto-nombre">${p.nombre}</div>
+        <div class="producto-footer">
+          <div>
+            <div class="producto-precio">S/ ${fmt(priceWithDiscount)}</div>
+            ${df<1 ? `<span class="precio-tachado">S/ ${fmt(p.precio)}</span>`:''}
+            <div class="qty-wrap">
+              <button class="qty-btn" data-act="dec">−</button>
+              <input class="qty-input" type="number" min="1" value="1" />
+              <button class="qty-btn" data-act="inc">+</button>
+            </div>
+            <button class="btn-add">🛒 Añadir al carrito</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    det.appendChild(grid); els.lista.appendChild(det);
+  }
+  if(!any) els.lista.innerHTML='<div class="empty-state">Sin resultados</div>';
+
+  // Eventos de tarjetas
+  document.querySelectorAll('.producto-item').forEach(card=>{
+    const cod=card.dataset.cod;
+    const inc=card.querySelector('[data-act="inc"]');
+    const dec=card.querySelector('[data-act="dec"]');
+    const input=card.querySelector('.qty-input');
+    const add=card.querySelector('.btn-add');
+    function clamp(){ let v=Math.max(1,parseInt(input.value||'1',10)); input.value=v; }
+    inc?.addEventListener('click',()=>{ input.value=(parseInt(input.value||'1',10)+1); clamp(); });
+    dec?.addEventListener('click',()=>{ input.value=Math.max(1,parseInt(input.value||'1',10)-1); clamp(); });
+    input?.addEventListener('change',clamp);
+    add?.addEventListener('click',()=>{
+      const p = catalogo.find(x=>String(x.codigo).toUpperCase()===cod);
+      const qty=Math.max(1,parseInt(input.value||'1',10));
+      if(p) addToCart(p,qty);
+    });
+  });
+}
+
+function abrirCarrito(){ document.getElementById('modalOverlay').classList.add('show'); document.getElementById('modalCarrito').classList.add('show'); renderCarrito(); totals(); }
+function cerrarCarrito(){ document.getElementById('modalCarrito').classList.remove('show'); document.getElementById('modalOverlay').classList.remove('show'); }
+window.abrirCarrito=abrirCarrito; window.cerrarCarrito=cerrarCarrito;
+
+let detalleVisible = true;
+
+function renderCarrito(){
+  const cont = document.getElementById('carritoItems');
+  cont.innerHTML='';
+  const df = descuentoFactor();
+  const arr = Array.from(CART.items.values());
+  if(!arr.length){ cont.innerHTML='<div class="empty-state">Tu carrito está vacío</div>'; totals(); return; }
+  arr.forEach(it=>{
+    const unitPrice = it.precio * df;
+    const unitPts   = it.puntos * df;
+    const row=document.createElement('div'); row.className='carrito-item';
+    row.innerHTML=`
+      <div class="item-header-cart" style="display:flex;justify-content:space-between;font-weight:900;color:#0b2a66">
+        <div>${it.nombre}</div><div>${it.codigo}</div>
+      </div>
+      <div class="item-controls" style="display:${detalleVisible?'grid':'none'};grid-template-columns:repeat(3,1fr);gap:8px;align-items:center;margin:8px 0">
+        <div class="control-group"><div class="control-label">Cant</div><input class="control-input qty" type="number" min="1" value="${it.qty}" /></div>
+        <div class="control-group"><div class="control-label">Precio</div><div class="control-input">S/ ${fmt(unitPrice)} ${df<1?`<span class='precio-tachado'>S/ ${fmt(it.precio)}</span>`:''}</div></div>
+        <div class="control-group"><div class="control-label">Puntos</div><div class="control-input">${fmt(unitPts,1)} PV</div></div>
+      </div>
+      <div class="item-delete" style="margin-top:6px"><button class="btn-eliminar"><span class="trash">🗑️</span> Eliminar</button></div>
+      <div class="item-totales" style="display:flex;justify-content:space-between"><span>Subtotal</span><span class="subtotal">S/ ${fmt(unitPrice*it.qty)}</span></div>
+    `;
+    // qty change
+    row.querySelector('.qty').addEventListener('change',(e)=>{
+      const v=Math.max(1,parseInt(e.target.value||'1',10)); e.target.value=v; it.qty=v; CART.items.set(String(it.codigo).toUpperCase(),it);
+      const np = (it.precio * descuentoFactor()) * it.qty;
+      row.querySelector('.subtotal').textContent = 'S/ ' + fmt(np);
+      badgeUpdate(); totals();
+    });
+    // delete
+    row.querySelector('.btn-eliminar').addEventListener('click',()=>{
+      CART.items.delete(String(it.codigo).toUpperCase()); row.remove(); badgeUpdate(); renderCarrito();
+    });
+    cont.appendChild(row);
+  });
+  totals();
+}
+
+// Toggle detalle button
+document.addEventListener('click', (e)=>{
+  if(e.target && e.target.id==='toggleDetalle'){
+    detalleVisible = !detalleVisible;
+    e.target.textContent = detalleVisible ? 'Ocultar detalle' : 'Ver detalle';
+    renderCarrito();
+  }
+});
+
+// ===== Afiliado fields: load/save & required =====
+const inputCodigo = () => document.getElementById('codigoAfiliado');
+const inputNombre = () => document.getElementById('nombreAfiliado');
+function loadAfiliado(){
+  try{
+    const c = localStorage.getItem('tiens_codigo') || '';
+    const n = localStorage.getItem('tiens_nombre') || '';
+    if (inputCodigo()) inputCodigo().value = c;
+    if (inputNombre()) inputNombre().value = n;
+  }catch(e){}
+}
+function saveAfiliado(){
+  try{
+    if (inputCodigo()) localStorage.setItem('tiens_codigo', inputCodigo().value.trim());
+    if (inputNombre()) localStorage.setItem('tiens_nombre', inputNombre().value.trim());
+  }catch(e){}
+}
+document.addEventListener('input', (e)=>{
+  if (e.target && (e.target.id==='codigoAfiliado' || e.target.id==='nombreAfiliado')) saveAfiliado();
+});
+
+function totals(){
+  const df = descuentoFactor();
+  const arr = Array.from(CART.items.values());
+  const bruto = arr.reduce((s,it)=> s + it.precio * it.qty, 0);
+  const neto  = arr.reduce((s,it)=> s + (it.precio * df) * it.qty, 0);
+  const puntosNt = arr.reduce((s,it)=> s + (it.puntos * df) * it.qty, 0);
+  const descMonto = bruto - neto;
+  const percep = isTDC() ? neto * 0.02 : 0;
+  const total = neto + percep;
+  document.getElementById('descuentoPrecio').textContent = 'S/ ' + fmt(descMonto);
+  document.getElementById('totalPrecio').textContent = 'S/ ' + fmt(total);
+  document.getElementById('totalPuntos').textContent = fmt(puntosNt) + ' pts';
+  document.getElementById('lineaPercepcion').style.display = isTDC() ? 'flex' : 'none';
+  document.getElementById('notaPercepcion').style.display = isTDC() ? 'block' : 'none';
+  document.getElementById('montoPercepcion').textContent = 'S/ ' + fmt(percep);
+}
+
+
+// Vaciar carrito: limpiar items y re-render
+window.vaciarCarrito = function(){
+  try {
+    CART.items.clear();
+    badgeUpdate();
+    renderCarrito();
+  } catch(e){ console.error('vaciarCarrito error', e); }
+};
+
+// Forzar re-render cuando cambian los selectores, incluso con cachés viejos
+window.onControlsChange = function(){
+  try{
+    renderCatalogo();
+    renderCarrito();
+    totals();
+  }catch(e){ console.error('onControlsChange', e); }
+};
+
+// compartir
+function urlEncode(s){try{return encodeURIComponent(s)}catch(e){return s}}
+window.compartirPedido = function(){
+  const cod = (inputCodigo()?.value||'').trim();
+  const nom = (inputNombre()?.value||'').trim();
+  if (!cod || !nom){
+    alert('Por favor, ingresa tu Código y Nombre antes de compartir el pedido.');
+    return;
+  }
+  const df = descuentoFactor();
+  const arr = Array.from(CART.items.values());
+  if(!arr.length) return alert('Tu carrito está vacío');
+  const tipo=(document.getElementById('tipoCompra')?.value||'CDA').toUpperCase();
+  const neto=arr.reduce((s,it)=> s + (it.precio*df)*it.qty, 0);
+  const percep = (tipo==='TDC') ? neto*0.02 : 0;
+  const total=neto+percep;
+  const puntos=arr.reduce((s,it)=> s + (it.puntos*df)*it.qty, 0);
+  let txt=`PEDIDO TIENS%0A============================%0A`;
+  txt+=`Tipo de compra: ${tipo}%0ADescuento: ${Math.round((1-df)*100)}%25%0A%0A`;
+  arr.forEach((it,i)=>{
+    const up=(it.precio*df); const pp=(it.puntos*df);
+    txt+=`${i+1}. ${it.nombre}%0A - Código: ${it.codigo}%0A - Cant: ${it.qty}%0A - Unit: S/ ${fmt(up)} (${fmt(pp)} PV)%0A%0A`;
+  });
+  if (tipo==='TDC') txt+=`Percepción 2%: S/ ${fmt(percep)}%0A`;
+  txt+=`TOTAL: S/ ${fmt(total)}%0A`;
+  txt+=`PUNTOS: ${fmt(puntos)} pts%0A`;
+  txt+=`Nombre: ${urlEncode(nom)}%0A`;
+  txt+=`Código: ${urlEncode(cod)}%0A============================`;
+  window.open(`https://wa.me/?text=${txt}`,'_blank');
+};
+
+
+// PWA install
+let deferredPrompt;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); deferredPrompt = e;
+  const btn = document.getElementById('btnInstall'); if(btn) btn.style.display='inline-block';
+});
+
+async function tryInstall(){
+  if (deferredPrompt){
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  } else {
+    // Fallback instructions (iOS/Safari or if criteria no met yet)
+    let msg = 'Para instalar la app:';
+    if (isIOS){
+      msg += '\n\n• Abre en Safari\n• Toca el botón Compartir\n• “Agregar a pantalla de inicio”';
+    } else if (isSafari){
+      msg += '\n\n• En Safari Desktop, usa Archivo → “Agregar a Dock” (macOS)';
+    } else {
+      msg += '\n\n• Asegúrate de navegar el sitio un momento y recargar para que el Service Worker tome control.';
+    }
+    alert(msg);
+  }
+}
+document.getElementById('btnInstall')?.addEventListener('click', tryInstall);
+
+if ('serviceWorker' in navigator) { 
+  window.addEventListener('load', ()=> navigator.serviceWorker.register('./sw.js'));
+}
+
+
+
+// Robust events for modal buttons (share/vaciar) in case of dynamic DOM
+document.addEventListener('click', (e)=>{
+  const id = (e.target && e.target.id) || '';
+  if (e.target && e.target.matches('button.btn')){
+    // allow native onclicks to fire; this is just a safeguard
+  }
+});
+
+// iniciar
+document.addEventListener('DOMContentLoaded', ()=>{
+  loadAfiliado();
+  renderCatalogo();
+  els.search.addEventListener('input', renderCatalogo);
+});
+</script>
+</body>
+</html>
